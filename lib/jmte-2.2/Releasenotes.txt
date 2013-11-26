@@ -1,0 +1,103 @@
+Release 1.0
+===========
+
+First complete public release
+
+Release 2.0 rc1
+===============
+
+Second complete public release mainly fixing design flaws and providing better API. Template language slightly extended.
+
+*Cleaner lexing allowing for better analysis of templates
+- Lexer now only does the job of a scanner without using evaluation. Evaluation is done on token when needed. 
+
+*New error reporting using properties mechanism
+- We now have i18n error messages that can be formatted with any locale in a lazy style
+
+*More helper functions
+- You can now merge multiple lists into a single one allowing to iterate them in parallel using the engine
+
+*Generally more graceful reactions to expressions that might seem inappropriate
+- If and foreach now try to make sense of any type of object being passed in as an expression parameter
+- Even a string expression tries to spit out any kind of object
+
+*Lots of internal refactoring and bug fixing
+
+*Introduced renderers
+
+*Introduced compiled mode
+
+*Introduced dynamic expressions and a configurable model adaptor
+
+Release 2.0 rc2
+===============
+
+* Samples classes stripped from jars
+
+* Added cached interpreted mode that features speedup close to compiled version (switched on as default)
+
+Release 2.0 rc3
+===============
+
+* Cleaned caliper tests
+
+* Fixed source release (missing libs and build files)
+
+* Reintroduced Engine.format as a non-static high performance version
+
+* Fixed infinite loop on certain parsing errors
+
+* Suppressed error messages on stderr when executing tests
+
+* Added a real world example/test
+
+* Added comment token ${-- comment}
+
+* Wrapped all exceptions in Util into RuntimeException
+
+* All renderers and process listener now get the template context as an additional parameter
+
+* Reflection code optimized for performance
+
+Release 2.0 final
+=================
+
+no changes from 2.0 rc3
+
+Release 2.1
+===========
+
+* Fixed i18n build problem
+
+* Added annotation token ${@ ...}, e.g. for static type declarations
+
+* Engine now thread safe on public methods
+
+* Minor cleaning of API visibilities
+
+* ProcessListener is now passed on a per transformation basis
+
+Release 2.2
+===========
+
+* Performance optimizations
+
+* Compiled classes are no longer stored globally and forever, but live as long as the engine - each engine has its own class loader that dies with it
+
+* Now direct access to template is possible as an alternative to the Engine#transform call
+
+* Used variables for interpreted templates are now buffered (have always been buffered for compiled templates)
+
+* Introduced compiler interface "TemplateCompiler"
+
+* Made compiler configurable in Engine allowing for very different compiler implementations even making use of annotations (e.g. for static type information)
+
+* Template now is interface instead of abstract class
+
+* Made all renderer resolvation methods public to be accessible from outside compilers (also added generic parameters)
+
+* Introduced RendererRegistry interface implemented by Engine
+
+* Reverted decision that all renderers and get the template context as an additional parameter - now without context again
+
+* Renamed test package "realLive" to "realLife"

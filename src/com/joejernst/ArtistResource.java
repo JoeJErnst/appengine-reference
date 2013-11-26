@@ -1,0 +1,69 @@
+package com.joejernst;
+
+import com.googlecode.objectify.Key;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+/*
+ * Copyright 2013 Joe J. Ernst
+ * <p/>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@Path("/artists")
+public class ArtistResource {
+    @GET
+    @Path("{sefName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getArtist(@PathParam("sefName") String sefName) {
+        Response returnResponse;
+
+        try {
+            Key<Artist> key = Key.create(Artist.class, sefName);
+
+            Artist artist = OfyService.ofy().load().key(key).get();
+            artist.setKey(key);
+
+            returnResponse = Response.ok().entity(artist).build();
+        } catch (Exception e) {
+            String errorMessage = "Could not find Artist: " + e.getMessage();
+            returnResponse = Response.serverError().entity(errorMessage).build();
+        }
+
+        return returnResponse;
+    }
+
+    @PUT
+    @Path("{sefName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response saveArtist(Artist artist) {
+        Response returnResponse;
+
+        try {
+            Key<Artist> key = OfyService.ofy().save().entity(artist).now();
+            Artist responseEntity = OfyService.ofy().load().key(key).get();
+            responseEntity.setKey(key);
+
+            returnResponse = Response.ok().entity(responseEntity).build();
+        } catch (Exception e) {
+            String errorMessage = "Could not create or update Artist: " + e.getMessage();
+            returnResponse = Response.serverError().entity(errorMessage).build();
+        }
+
+        return returnResponse;
+
+    }
+
+}

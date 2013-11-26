@@ -1,0 +1,267 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Java Minimal Template Engine</title>
+</head>
+<body>
+<h1>Java Minimal Template Engine</h1>
+<h2>Introduction</h2>
+
+<p>The Java project Minimal Template Engine is meant to fill the gap
+between simple string formatting with basic Java classes like
+String.format and complex template solutions like Velocity or
+StringTemplate.</p>
+
+<p>It is complete but minimal in a sense that you can express
+everything you need in a template language including 'if' and 'foreach',
+but nothing else. Because of this it is small, easy to learn and clearly
+focused. It does not try to solve what Java can do better anyway.</p>
+
+<p>It has no external dependencies (except when running in
+compilation mode), can be extended and configured in many ways and has
+barely 80k of code size. It runs in almost all environments including
+the Google App Engine.</p>
+
+
+<h2>Minimal Template Engine is</h2>
+<ul>
+	<li><em>minimal</em> - you can express everything you need in a
+	template language including if and foreach, but nothing more
+	<li><em>non-toy</em> - this is for real stuff
+	<li><em>extensible</em> - you can either change the behavior by
+	adding your own renderers, processors, and error handlers
+	<li><em>configurable</em> - you do not like ${name}? Simply change
+	it to {name} or &lt;name> or whatever you like
+	<li><em>flexible</em> - feed in templates as String, Reader, File
+	or InputStream - you can also use it as a stand alone tool and feed the
+	model in a property file - or use it as a replacement for <code>String.format</code>
+	passing in <code>Object...</code> as model
+	<li><em>simple to learn</em> - it takes less than 5 minutes to
+	learn
+	<li><em>no vendor lock-in</em> - pass in <code>Map&lt;String,
+	Object></code> as model
+	<li><em>fast</em> - no time consuming parsing - you can switch off
+	escaping of special characters, making it even faster or even enable
+	compiled mode making it as fast as hand written Java code
+</ul>
+
+<h2>The model</h2>
+
+<p><pre>Map&lt;String,Object></pre></p>
+<p>Nothing more to say.</p>
+
+<h2>The Language</h2>
+
+<p>The language is really simple and can be learned in no time. It
+is all about having a text with small island of expressions that expand
+to text or control the expansion of text fragments. Those expressions
+are enclosed in special characters which are freely configurable but are
+by default
+<ul>
+	<li><code>${</code> for the start of an expression and
+	<li><code>}</code> for its end
+</ul>
+</p>
+
+<h3>Replacing variables</h3>
+
+<p>The simplest form of an expression is to expand an entry
+contained in the model to a string: <code> ${name} </code></p>
+
+<p>If your model contains complex objects and you want to expand a
+certain property or field you can use the "." notation to navigate to it
+like e.g. <code> ${object.name} </code>.</p>
+
+<h3>Renderer information</h3>
+
+<p>How a variable is eventually converted to a string is determined
+by renderers. There are renderers which are automatically called based
+on the type of the variable, but calling them is not part of the
+template langauage, but rather a matter of configuring them on the
+engine - which is described in the API section.</p>
+
+<p>However, there are also so called "named renderers" which you can
+address by passing their name along with the name of the variable. You
+do this by adding a semicolon and the name of the renderer to the
+variable name. You can even pass format information in brackets.</p>
+
+For example this
+<pre>
+${currentDate;date(yyyy.MM.dd HH:mm:ss z)}
+</pre>
+
+would cause the variable called "currentDate" to be formatted with a
+renderer named "date". This named renderer would then be passed the
+format "yyyy.MM.dd HH:mm:ss z" along with the variable to be rendered.
+Named renderers know which types they support and are responsible to do
+the necessary conversion for them.
+
+<h3>Conditional expansion</h3>
+
+<p>Sometimes you might want to display certain text or expand
+certain expression only when certain conditions hold. The minimal
+template engine provides you with an if-statement to do so.</p>
+
+<pre>
+${if condition}
+  text displayed if condition holds
+${else}
+  text displayed if condition does not hold
+${end}
+</pre>
+
+<p>The else-part is optional and the whole conditional block has to
+be terminated by the end-expression. If-expressions can be nested and
+conditions can be negated using the "!"-operator. You can also compare
+to a string constant using the "="-operator.</p>
+<p>There are no other logical operators, i.e. you can not combine
+conditions using <code>and</code> or <code>or</code>. The reason is that
+this is a minimal language, expressions can be complex and conditions
+can be constructed in the Java model. You can either have a condition
+directly inside the model or you can build a processor that computes it
+and add it to the model.</p>
+
+<p>The condition can be any object. It evaluates using these rules
+<ul>
+	<li>if the object is <code>null</code> or calling <code>toString</code>
+	on the object returns the empty string or <code>"false"</code> the
+	condition evaluates to <code>false</code>
+	<li>if the object is a boolean, the condition evaluates to the
+	value of that boolean
+	<li>if the object is a map, a collection, an array or any iterable
+	the condition evaluates to <code>true</code> if they contain any
+	elements
+	<li>otherwise the condition evaluates to <code>true</code>
+</ul>
+</p>
+
+<h3>Conditional shortcuts</h3>
+
+For convenience reasons there are some shortcuts for the most commonly
+used conditional statements. The first shortcut works by supplying a
+default constant value which will used in case the variable is
+undefined. You can specify such a default value in brackets. E.g.
+<pre>
+${address(unknown)}
+</pre>
+
+would be equivalent to
+
+<pre>
+${if address}${address}${else}unknown${end}
+</pre>
+
+The second shortcut works by wrapping a value, but only if it is
+defined. You can wrap a value by adding a prefix and a suffix separated
+by commas. This means
+<pre>
+${&lt;h1>,address,&lt;/h1>}
+</pre>
+
+is essentially the same as
+
+<pre>
+${if address}&lt;h1>${address}&lt;/h1>${end}
+</pre>
+
+To avoid ambiguities, both prefix and suffix must be supplied or none at
+all, but they can also be the empty string.
+
+<h3>Loops (expanding more than one item)</h3>
+
+<p>If you want to expand all elements of a container you can use the
+foreach-expression.</p>
+
+<pre>
+${foreach container item}
+  ${item}
+${end}
+</pre>
+
+<p>In this example variable <code>item</code> is set to each element
+of the container and the body - i.e. the part between the foreach- and
+the end-expression - is expanded for each item in the container. The
+container can be anything that implements <code>java.lang.Iterable</code>
+or anything that implements <code>java.util.Map</code> or any array. If
+the container is a map we iterate over its entry set and the items will
+be of type <code>Map.Entry</code>. This means you can access its parts
+using <code>${item.key}</code> and <code>${item.value}</code>.</p>
+
+<p>Loops can be nested and can also contain all kinds of other
+expressions. You are not able to specify a step or a start of end index.</p>
+
+<h4>Special variables</h4>
+<p>In certain cases you might want to change the way an item in a
+container shall be displayed depending on its position inside the
+container. One example is to have the rows in a table be displayed
+having an alternating format depending whether their row number is even
+or odd.</p>
+
+<p>Current list of special variables
+<ol>
+	<li>first
+	<li>last
+	<li>odd
+	<li>even
+</ol>
+</p>
+
+<p>Special variables are suffixed by a <code>_</code> followed by
+the name of the item variable. This means inside a foreach loop that has
+<code>item</code> as the item name there will be the variable <code>first_item</code>.</p>
+
+<p>Example:</p>
+
+<pre>
+${foreach items item}
+  ${if first_item}
+    &lt;em>${item}&lt;/em>
+  ${else}
+    ${item}
+  ${end}
+${end}
+</pre>
+
+
+<h4>Separators</h4>
+
+<p>When displaying a list of items you might want to have a
+separator between each item. This will not work using a normal body as
+there shall be no additional separator after the last item. You can
+either solve this using special variables - explained in the previous
+section - or more easily using a separator. Such a separator is added
+into the foreach expression like this</p>
+<pre>
+${foreach container item , }${item}${end}
+</pre>
+
+<p>Suppose the container contains the items <code>item1</code> and <code>item2</code>
+then the formatted output looks like <code>item1, item2</code>.</p>
+
+<h3>Escaping</h3>
+
+<p>When you want to use the special character sequences literally
+you will have to escape them using a the backslash <code>\</code>. You
+can also escape the backslash by adding a second.</p>
+<p>In Java this would be
+<ul>
+	<li>\\${
+	<li>\\}
+	<li>\\\\
+</ul>
+</p>
+<p>and if you read your template from a file
+<ul>
+	<li>\${
+	<li>\}
+	<li>\\
+</ul>
+</p>
+
+<h2>API</h2>
+API reference can be found
+<a href="api/index.html?com/floreysoft/jmte/package-summary.html">here</a>
+.
+</body>
+</html>

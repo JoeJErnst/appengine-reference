@@ -22,7 +22,7 @@
             <param-name>com.sun.jersey.config.property.packages</param-name>
             <!-- Enter your Jersey resources to speed up initial Jersey loading -->
             <!-- You can separate the java packages using , -->
-            <param-value></param-value>
+            <param-value>com.joejernst</param-value>
         </init-param>
 
         <!--<init-param>-->
@@ -30,10 +30,10 @@
             <!--<param-value>true</param-value>-->
         <!--</init-param>-->
 
-        <init-param>
-            <param-name>javax.ws.rs.Application</param-name>
-            <param-value>Application</param-value>
-        </init-param>
+        <!--<init-param>-->
+            <!--<param-name>javax.ws.rs.Application</param-name>-->
+            <!--<param-value>Application</param-value>-->
+        <!--</init-param>-->
 
         <load-on-startup>1</load-on-startup>
     </servlet>
